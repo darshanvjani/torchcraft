@@ -1,6 +1,9 @@
+# !pip install torch-lr-finder
+
 import torch
 import torchvision
 import torchvision.transforms as transforms
+from torch_lr_finder import LRFinder
 import albumentations
 import numpy as np
 # from __future__ import print_function
@@ -58,6 +61,9 @@ class main():
         if model_name == 'resnet34':
             net = resnet.ResNet34()
             self.net = net
+        if model_name == 'davidc_stanford_dawnbench':
+            net = davidc_stanford_dawnbench.Net()
+            self.net = net
         if set_seed_no != None:
             set_seed(set_seed_no,True)
         if show_summery == True:
@@ -78,8 +84,13 @@ class main():
         target_layers = ["layer1","layer2","layer3","layer4"]
         gradcam_output, probs, predicted_classes = generate_gradcam(wrong_pred[:10],self.net,target_layers,self.device)
         plot_gradcam(gradcam_output, target_layers, self.classes, (3, 32, 32),predicted_classes, wrong_pred[:10])
-
         
+    def lr_finder(self, optimizer, criterian):
+        
+        lr_finder = LRFinder(self.net, optimizer, criterian, device=self.device)
+        lr_finder.range_test(self.train_dataloader, end_lr=10, num_iter=400, step_mode='exp')
+        lr_finder.plot() # to inspect the loss-learning rate graph
+        lr_finder.reset()
 
 
 
